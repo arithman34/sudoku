@@ -31,7 +31,7 @@ class Container:
         y = self.midpoint[1]
 
         if self.type == "Button":
-            size = 250, 50
+            size = 250, 64
             y -= (len(self.sprites) // 2 * (size[1] + self.margin))
             if len(self.sprites) % 2 == 0:
                 y += (size[1] + self.margin) // 2

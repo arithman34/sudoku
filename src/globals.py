@@ -24,8 +24,8 @@ pygame.init()
 pygame.display.set_caption(TITLE)
 FONT = pygame.font.SysFont("arial.ttf", 30)  # default font
 LARGEFONT = pygame.font.SysFont('arial.ttf', 60)
-PENCILFONT = pygame.font.Font("pencil.ttf", 60)
-SCREEN = pygame.display.set_mode((WIDTH, HEIGHT), pygame.NOFRAME)
+PENCILFONT = pygame.font.Font("res\pencil.ttf", 60)
+SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
 CLOCK = pygame.time.Clock()
 
 
