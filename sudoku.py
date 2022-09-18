@@ -10,7 +10,6 @@ class Grader:
         self.__difficulty = difficulty
         self.total = 0
         self.empty_cells = 0
-        # self.__markup()
 
     def __markup(self):
         self.total = 0
@@ -18,7 +17,7 @@ class Grader:
         markup = [[[] for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]
         for j in range(BOARD_SIZE):
             for i in range(BOARD_SIZE):
-                if self.sudoku.board[j][i] == 0:
+                if self.sudoku.getBoard()[j][i] == 0:
                     markup[j][i] = list(self.sudoku.markup(i, j))
                     self.total += len(markup[j][i])
                     self.empty_cells += 1
@@ -40,24 +39,24 @@ class Grader:
 
 class Sudoku:
     def __init__(self, board=None):
-        self.board = board
+        self.__board = board
         self.temp = board
         self.__thread = None
         self.__solving = False
 
     def initBoard(self):
-        self.board = [[0] * BOARD_SIZE for _ in range(BOARD_SIZE)]
+        self.__board = [[0] * BOARD_SIZE for _ in range(BOARD_SIZE)]
 
     def getRow(self, j):
-        return set(self.board[j])
+        return set(self.__board[j])
 
     def getColumn(self, i):
-        return set([self.board[x][i] for x in range(BOARD_SIZE)])
+        return set([self.__board[x][i] for x in range(BOARD_SIZE)])
 
     def getGrid(self, i, j):
         i = i // 3
         j = j // 3
-        return set([self.board[y][x] for y in range(j * 3, j * 3 + 3) for x in range(i * 3, i * 3 + 3)])
+        return set([self.__board[y][x] for y in range(j * 3, j * 3 + 3) for x in range(i * 3, i * 3 + 3)])
 
     def markup(self, i, j):
         row = NUMBERS - self.getRow(j)
@@ -68,7 +67,7 @@ class Sudoku:
     def emptyPosition(self, pos):
         for j in range(BOARD_SIZE):
             for i in range(BOARD_SIZE):
-                if self.board[j][i] == 0:
+                if self.__board[j][i] == 0:
                     pos[0] = i
                     pos[1] = j
                     return True
@@ -76,13 +75,13 @@ class Sudoku:
 
     def answer(self):
         self.__solving = True
-        self.temp = deepCopy(self.board)
+        self.temp = deepCopy(self.__board)
         while self.__solving:
             try:
                 self.__solve()
                 self.temp = None
             except RuntimeError:
-                self.board = deepCopy(self.temp)
+                self.__board = deepCopy(self.temp)
             self.__solving = False
 
     def __solve(self):
@@ -104,7 +103,7 @@ class Sudoku:
         random.shuffle(numbers)  # this line ensures that each board generated is generally unique
 
         for num in numbers:
-            self.board[j][i] = num
+            self.__board[j][i] = num
 
             if self.__solving:
                 time.sleep(0.01)
@@ -112,7 +111,7 @@ class Sudoku:
             if self.__solve():
                 return True
 
-            self.board[j][i] = 0
+            self.__board[j][i] = 0
 
             if self.__solving:
                 time.sleep(0.01)
@@ -132,26 +131,32 @@ class Sudoku:
             self.solution()
             for _ in range(10):
                 i, j = random.randint(0, BOARD_SIZE - 1), random.randint(0, BOARD_SIZE - 1)
-                while self.board[j][i] == 0:
+                while self.__board[j][i] == 0:
                     i, j = random.randint(0, BOARD_SIZE - 1), random.randint(0, BOARD_SIZE - 1)
-                self.board[j][i] = 0
+                self.__board[j][i] = 0
             grader = Grader(self, None)
             grader.update()
             while grader.check() != flag:
                 i, j = random.randint(0, BOARD_SIZE - 1), random.randint(0, BOARD_SIZE - 1)
-                while self.board[j][i] == 0:
+                while self.__board[j][i] == 0:
                     i, j = random.randint(0, BOARD_SIZE - 1), random.randint(0, BOARD_SIZE - 1)
-                self.board[j][i] = 0
+                self.__board[j][i] = 0
                 grader.update()
 
-        self.temp = deepCopy(self.board)
+        self.temp = deepCopy(self.__board)
 
     def backtrackingSolution(self):
-        # grader = Grader(self, None)
-        # grader.update()
-        # print(grader.check())
         self.__thread = threading.Thread(target=self.answer, args=())
         self.__thread.start()
+
+    def parseCell(self, i, j, num):
+        self.__board[j][i] = num
+
+    def parseBoard(self, board):
+        self.__board = board
+
+    def getBoard(self):
+        return self.__board
 
 
 def deepCopy(array):

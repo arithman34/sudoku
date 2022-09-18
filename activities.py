@@ -150,9 +150,10 @@ class GameActivity:
         self.sudoku.create(mode)
         self.i = 0
         self.j = 0
-        self.board = self.sudoku.board  # it's okay that this is not a deep copy. We want to overwrite the sudoku board
-        self.uneditable = populateDictionary(self.board)
-        self.temp = deepCopy(self.board)
+        board = self.sudoku.getBoard()
+        self.uneditable = populateDictionary(board)
+        self.states = []
+        self.initial = deepCopy(board)
         self.positions = []
 
         self.containers = []
@@ -160,7 +161,9 @@ class GameActivity:
         container = Container((SIZE * BOARD_SIZE, 0), (WIDTH, HEIGHT))
         container.add(Button("New Game", HomeActivity))
         container.add(Button("Reset", self.reload))
-        container.add(Button("Solve", partial(SolvingActivity, self.board)))
+        container.add(Button("Solve", self.solve))
+
+        container.add(Button("Undo", self.previousBoardState))
         container.inflate()
 
         self.containers.append(container)
@@ -181,7 +184,7 @@ class GameActivity:
                         self.i = i
                         self.j = j
                         self.positions.clear()
-                        self.positions = self.findIllegalPositions(self.board[self.j][self.i])
+                        self.positions = self.findIllegalPositions(self.sudoku.getBoard()[self.j][self.i])
 
                 if event.type == pygame.KEYDOWN:
                     num = -1
@@ -213,7 +216,8 @@ class GameActivity:
                         self.positions = self.findIllegalPositions(num)
 
                     if num != -1 and (self.i, self.j) not in self.uneditable:
-                        self.board[self.j][self.i] = num
+                        self.sudoku.parseCell(self.i, self.j, num)
+                        self.states.append((deepCopy(self.sudoku.getBoard()), (self.i, self.j)))
 
                 for container in self.containers:
                     container.update()
@@ -231,6 +235,8 @@ class GameActivity:
     def findIllegalPositions(self, num):
         if num == 0:
             return []
+
+        board = self.sudoku.getBoard()
         row = self.sudoku.getRow(self.j)
         column = self.sudoku.getColumn(self.i)
         grid = self.sudoku.getGrid(self.i, self.j)
@@ -242,38 +248,39 @@ class GameActivity:
             temp_j = self.j // 3
             for j in range(temp_j * 3, temp_j * 3 + 3):
                 for i in range(temp_i * 3, temp_i * 3 + 3):
-                    if num == self.board[j][i] and (self.i, self.j) != (i, j):
+                    if num == board[j][i] and (self.i, self.j) != (i, j):
                         positions.append((i, j))
 
         if num in row:
             for i in range(BOARD_SIZE):
-                if num == self.board[self.j][i] and self.i != i:
+                if num == board[self.j][i] and self.i != i:
                     positions.append((i, self.j))
 
         if num in column:
             for j in range(BOARD_SIZE):
-                if num == self.board[j][self.i] and self.j != j:
+                if num == board[j][self.i] and self.j != j:
                     positions.append((self.i, j))
 
         return positions
 
     def draw_cells(self):
-        num = self.board[self.j][self.i]
+        board = self.sudoku.getBoard()
+        num = board[self.j][self.i]
         for j in range(BOARD_SIZE):
             for i in range(BOARD_SIZE):
                 color = WHITE
-                if num != 0 and self.board[j][i] == num:
+                if num != 0 and board[j][i] == num:
                     color = GREY
                 if (i, j) == (self.i, self.j):
                     color = RED
                 pygame.draw.rect(SCREEN, color, (i * SIZE, j * SIZE, SIZE, SIZE))
-                if self.board[j][i] == 0:
+                if board[j][i] == 0:
                     continue
                 if (i, j) in self.uneditable.keys():
                     font = LARGEFONT
                 else:
                     font = PENCILFONT
-                text = font.render(str(self.board[j][i]), True, BLACK)
+                text = font.render(str(board[j][i]), True, BLACK)
                 width, height = text.get_width(), text.get_height()
                 SCREEN.blit(text, (i * SIZE + SIZE / 2 - width / 2, j * SIZE + SIZE / 2 - height / 2))
 
@@ -283,8 +290,23 @@ class GameActivity:
     def reload(self):
         self.i = 0
         self.j = 0
-        self.board = deepCopy(self.sudoku.temp)
+        self.sudoku.parseBoard(deepCopy(self.sudoku.temp))
+        self.states = []
         self.positions.clear()
+
+    def solve(self):
+        SolvingActivity(deepCopy(self.sudoku.getBoard()))
+
+    def previousBoardState(self):
+        if len(self.states) > 0:
+            self.states.pop()
+            if len(self.states) != 0:
+                self.sudoku.parseBoard(deepCopy(self.states[-1][0]))
+                self.i, self.j = self.states[-1][1]
+            else:
+                self.sudoku.parseBoard(deepCopy(self.initial))
+                self.i, self.j = 0, 0
+            self.positions.clear()
 
 
 class SolvingActivity:
@@ -326,7 +348,6 @@ class SolvingActivity:
             CLOCK.tick(FPS)
 
     def draw_cells(self):
-
         for j in range(BOARD_SIZE):
             for i in range(BOARD_SIZE):
                 pygame.draw.rect(SCREEN, WHITE, (i * SIZE, j * SIZE, SIZE, SIZE))
@@ -349,8 +370,8 @@ class SolvingActivity:
     def update(self):
         for j in range(BOARD_SIZE):
             for i in range(BOARD_SIZE):
-                if self.board[j][i] != self.sudoku.board[j][i]:
-                    self.board[j][i] = self.sudoku.board[j][i]
+                if self.board[j][i] != self.sudoku.getBoard()[j][i]:
+                    self.board[j][i] = self.sudoku.getBoard()[j][i]
 
 
 def draw_grid():
