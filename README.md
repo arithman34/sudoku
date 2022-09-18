@@ -14,7 +14,6 @@ A portion of the Button class from https://github.com/formazione/pygame_button w
 ### Possible iterations
 * Adding .png/.jpeg images to increase the aesthetics
 * Adding markup to cells (although this could make the game much easier so will have to be evaluated)
-* Adding a undo button to the game activity
 * Adding different solving methods rather than backtracking (using brute force). One idea could be a human version. Where naturally we identify cells with the least possible numbers and attempt to solve them first.
 
 ### Choices
