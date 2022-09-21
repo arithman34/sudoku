@@ -1,21 +1,10 @@
-from globals import *
+import pygame
+from globals import FONT, WHITE, SELECTED_TEMPLATE, DEFAULT_TEMPLATE, SCREEN
 
 
 class Button:
     def __init__(self, text, onclick, alignment="center"):
-        # Core attributes
-        # super().__init__()
         self.pressed = False
-        self.hovering = False
-
-        # top rectangle
-        self.rect = None
-        self.image = None
-        self.top_color = GREY
-
-        # bottom rectangle
-        self.bottom_rect = None
-        self.bottom_color = BLACK
 
         # text
         self.text = FONT.render(text, True, WHITE)
@@ -28,6 +17,7 @@ class Button:
         self.pos = None
         self.onclick = onclick
 
+        self.rect = None
         self.selectedImg = None
         self.defaultImg = None
 
@@ -41,7 +31,6 @@ class Button:
         self.defaultImg = pygame.transform.scale(DEFAULT_TEMPLATE, self.size)
 
         self.image = self.defaultImg
-
         self.rect = self.defaultImg.get_rect(center=self.pos)
 
         if self.alignment == "center":
@@ -58,7 +47,6 @@ class Button:
                     self.onclick()
                     self.pressed = False
         else:
-            self.top_color = GREY
             self.pressed = False
             self.image = self.defaultImg
 
