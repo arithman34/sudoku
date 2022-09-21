@@ -1,12 +1,12 @@
 import pygame
 
-from globals import FONT, BLACK, SCREEN, topleft
+from globals import FONT, BLACK, SCREEN, getTopleft, WHITE
 
 padding = (50, 30)
 
 
 class Text:
-    def __init__(self, text, font=FONT, color=BLACK, alignment="center", border=False, width=0, height=0, margin=0):
+    def __init__(self, text, font=FONT, color=WHITE, alignment="center", border=False, width=0, height=0, margin=0):
         self.text = text
 
         self.width, self.height = width, height
@@ -37,7 +37,7 @@ class Text:
         pass
 
     def oneline_text(self):
-        self.rects.append(pygame.Rect(topleft(self.pos, self.size), self.size))
+        self.rects.append(pygame.Rect(getTopleft(self.pos, self.size), self.size))
         self.text_surfs.append(self.font.render(self.text, True, self.color))
         if self.alignment == "center":
             self.text_rects.append(self.text_surfs[0].get_rect(center=self.rects[0].center))
@@ -84,7 +84,7 @@ class Text:
         for i in range(len(self.rects)):
             SCREEN.blit(self.text_surfs[i], self.text_rects[i])
             if self.border:
-                pygame.draw.rect(SCREEN, BLACK, self.rects[i], width=1)
+                pygame.draw.rect(SCREEN, self.color, self.rects[i], width=1)
 
 
 class Icon:
@@ -103,7 +103,7 @@ class Icon:
             self.height = size[1]
 
         self.pos = pos
-        self.rect = pygame.Rect(topleft(self.pos, (self.width, self.height)), (self.width, self.height))
+        self.rect = pygame.Rect(getTopleft(self.pos, (self.width, self.height)), (self.width, self.height))
 
     def update(self):
         pass

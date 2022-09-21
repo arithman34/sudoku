@@ -4,7 +4,7 @@ from globals import BLACK, SCREEN
 
 
 class Table:
-    def __init__(self, columns, rows, border=True):
+    def __init__(self, columns, rows, border=False):
         self.size = []
         self.pos = None
         self.border = border

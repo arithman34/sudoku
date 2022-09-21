@@ -1,11 +1,11 @@
-import pygame.sprite
+import pygame
 
-from globals import SCREEN, BLACK, BACKGROUND
+from globals import *
 
 
 # assume everything in the container is centralised
 class Container:
-    def __init__(self, topleft, bottomright, margin=70, color=BACKGROUND):
+    def __init__(self, topleft, bottomright, margin=70, color=BACKGROUNDCOLOR):
         self.topleft = topleft
         self.midpoint = (topleft[0] + bottomright[0]) // 2, (topleft[1] + bottomright[1]) // 2
         self.margin = margin
@@ -31,10 +31,10 @@ class Container:
         y = self.midpoint[1]
 
         if self.type == "Button":
-            size = 250, 64
-            y -= (len(self.sprites) // 2 * (size[1] + self.margin))
+            size = 320, 64
+            y -= ((len(self.sprites) // 2) * (size[1] + self.margin))
             if len(self.sprites) % 2 == 0:
-                y += (size[1] + self.margin) // 2
+                y += (size[1] + self.margin) / 2
 
             for sprite in self.sprites:
                 sprite.inflate((self.midpoint[0], y), size)
@@ -53,8 +53,12 @@ class Container:
             sprite.update()
 
     def draw(self):
+
         # pygame.draw.rect(SCREEN, self.color, (
         #     self.topleft[0], self.topleft[1], self.size[0], self.size[1]))
+
+        # pygame.draw.rect(SCREEN, BLACK, (
+        #     0, 107, WIDTH, 506))
 
         for sprite in self.sprites:
             sprite.draw()

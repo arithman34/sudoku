@@ -1,11 +1,66 @@
 from functools import partial
 
-from button import Button
+from button import *
 from container import Container
 from labels import Text, Icon
 from sudoku import Sudoku, deepCopy
 from globals import *
 from table import Table
+
+
+class WelcomeActivity:
+    def __init__(self):
+        self.blink_event = pygame.USEREVENT + 0
+
+        self.containers = []
+
+        container = Container((0, 0), (WIDTH, 150), 0)
+        container.add(Text("Welcome to Sudoku", font=LARGEFONT, margin=50))
+        container.inflate()
+        self.containers.append(container)
+
+        container = Container((0, 150), (WIDTH, HEIGHT - 150), 0)
+        container.add(Text("Sudoku is a game where all rows, columns and 3x3 grids must contain " +
+                           "the numbers 1-9 at least once and only once. This implementation can also solve any " +
+                           "sudoku board provided, of course, it is legal. You will have several modes to choose " +
+                           "from ranging from easy to hard. Good luck!", margin=100))
+        container.inflate()
+        self.containers.append(container)
+
+        self.blink_container = Container((0, HEIGHT - 150), (WIDTH, HEIGHT))
+        self.blink_container.add(Text("Press a key to play"))
+        self.blink_container.inflate()
+
+        pygame.time.set_timer(self.blink_event, 1000)
+
+        self.run()
+
+    def run(self):
+        running = True
+        showing = False
+        while running:
+            SCREEN.blit(BACKGROUND, (0, 0))
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    destroy()
+
+                if event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
+                    running = False
+
+                if event.type == self.blink_event:
+                    showing = not showing
+
+                for container in self.containers:
+                    container.update()
+
+            for container in self.containers:
+                container.draw()
+
+            if showing:
+                self.blink_container.draw()
+            pygame.display.flip()
+            CLOCK.tick(FPS)
+        HomeActivity()
 
 
 class HomeActivity:
@@ -27,12 +82,12 @@ class HomeActivity:
         while running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    destroy()
+                    running = False
 
                 for container in self.containers:
                     container.update()
 
-            SCREEN.fill(BACKGROUND)
+            SCREEN.blit(BACKGROUND, (0, 0))
 
             for container in self.containers:
                 container.draw()
@@ -64,7 +119,7 @@ class ModeActivity:
                 for container in self.containers:
                     container.update()
 
-            SCREEN.fill(BACKGROUND)
+            SCREEN.blit(BACKGROUND, (0, 0))
 
             for container in self.containers:
                 container.draw()
@@ -77,37 +132,23 @@ class InstructionActivity:
     def __init__(self):
         self.containers = []
 
-        container = Container((0, 0), (WIDTH // 2, 150), 0, (0, 255, 0))
-        container.add(Text("Welcome to Sudoku", font=LARGEFONT, margin=50))
-
-        container.inflate()
-        self.containers.append(container)
-
-        container = Container((0, 150), (WIDTH // 2, HEIGHT - 150), 0, (255, 0, 255))
-        container.add(Text("Sudoku is a game where all rows, columns and 3x3 grids must contain " +
-                           "the numbers 1-9 at least once and only once. This implementation can also solve any " +
-                           "sudoku board provided, of course, it is legal. You will have several modes to choose " +
-                           "from ranging from easy to evil. Good luck!", margin=100))
-        container.inflate()
-        self.containers.append(container)
-
         container = Container((0, HEIGHT - 150), (WIDTH, HEIGHT), color=(255, 255, 0))
         container.add(Button("Return", HomeActivity))
         container.inflate()
 
         self.containers.append(container)
 
-        container = Container((WIDTH // 2, 0), (WIDTH, HEIGHT - 150), color=(0, 255, 255))
-        table = Table(2, 7, True)
+        container = Container((0, 0), (WIDTH, HEIGHT - 150), color=(0, 255, 255))
+        table = Table(2, 7)
 
         table.add_cell(Text("Key", alignment="center"), 0, 0)
         table.add_cell(Icon(WHITE, width=SIZE, height=SIZE), 0, 1)
         table.add_cell(Icon(RED, width=SIZE, height=SIZE), 0, 2)
-        table.add_cell(Icon(GREY, width=SIZE, height=SIZE), 0, 3)
+        table.add_cell(Icon(LIGHTGREY, width=SIZE, height=SIZE), 0, 3)
         table.add_cell(Icon(RED, width=SIZE, height=SIZE), 0, 4)
-        table.add_cell(Icon(GREY, width=SIZE - 20, height=SIZE - 20), 0, 4)
+        table.add_cell(Icon(LIGHTGREY, width=SIZE - 20, height=SIZE - 20), 0, 4)
         table.add_cell(Icon(WHITE, width=SIZE, height=SIZE), 0, 5)
-        table.add_cell(Text("6", font=LARGEFONT, color=BLACK, width=SIZE, height=SIZE), 0, 5)
+        table.add_cell(Text("6", font=ARIALFONT, color=BLACK, width=SIZE, height=SIZE), 0, 5)
         table.add_cell(Icon(WHITE, width=SIZE, height=SIZE), 0, 6)
         table.add_cell(Text("6", font=PENCILFONT, color=BLACK, width=SIZE, height=SIZE), 0, 6)
 
@@ -135,7 +176,7 @@ class InstructionActivity:
                 for container in self.containers:
                     container.update()
 
-            SCREEN.fill(BACKGROUND)
+            SCREEN.blit(BACKGROUND, (0, 0))
             for container in self.containers:
                 container.draw()
             pygame.display.flip()
@@ -162,7 +203,6 @@ class GameActivity:
         container.add(Button("New Game", HomeActivity))
         container.add(Button("Reset", self.reload))
         container.add(Button("Solve", self.solve))
-
         container.add(Button("Undo", self.previousBoardState))
         container.inflate()
 
@@ -222,12 +262,12 @@ class GameActivity:
                 for container in self.containers:
                     container.update()
 
-            SCREEN.fill(BACKGROUND)
+            SCREEN.blit(BACKGROUND, (0, 0))
             for container in self.containers:
                 container.draw()
             self.draw_cells()
             draw_grid()
-            SCREEN.blit(get_fps(), (WIDTH - 94, 20))
+            # SCREEN.blit(get_fps(), (WIDTH - 94, 20))
 
             pygame.display.flip()
             CLOCK.tick(FPS)
@@ -270,14 +310,14 @@ class GameActivity:
             for i in range(BOARD_SIZE):
                 color = WHITE
                 if num != 0 and board[j][i] == num:
-                    color = GREY
+                    color = LIGHTGREY
                 if (i, j) == (self.i, self.j):
                     color = RED
                 pygame.draw.rect(SCREEN, color, (i * SIZE, j * SIZE, SIZE, SIZE))
                 if board[j][i] == 0:
                     continue
                 if (i, j) in self.uneditable.keys():
-                    font = LARGEFONT
+                    font = ARIALFONT
                 else:
                     font = PENCILFONT
                 text = font.render(str(board[j][i]), True, BLACK)
@@ -337,12 +377,12 @@ class SolvingActivity:
                 for container in self.containers:
                     container.update()
 
-            SCREEN.fill(BACKGROUND)
+            SCREEN.blit(BACKGROUND, (0, 0))
             for container in self.containers:
                 container.draw()
             self.draw_cells()
             draw_grid()
-            SCREEN.blit(get_fps(), (WIDTH - 94, 20))
+            # SCREEN.blit(get_fps(), (WIDTH - 94, 20))
 
             pygame.display.flip()
             CLOCK.tick(FPS)
@@ -355,7 +395,7 @@ class SolvingActivity:
                     continue
 
                 if (i, j) in self.uneditable.keys():
-                    font = LARGEFONT
+                    font = ARIALFONT
                 else:
                     font = PENCILFONT
 
