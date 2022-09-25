@@ -1,13 +1,13 @@
 import pygame
 
-from globals import FONT, BLACK, SCREEN, getTopleft, WHITE
+from globals import FONT, BLACK, SCREEN, getTopleft, TEXTCOLOR
 
 padding = (50, 30)
 
 
 class Text:
-    def __init__(self, text, font=FONT, color=WHITE, alignment="center", border=False, width=0, height=0, margin=0):
-        self.text = text
+    def __init__(self, text, font=FONT, color=TEXTCOLOR, alignment="center", border=False, width=0, height=0, margin=0):
+        self.text = str(text)
 
         self.width, self.height = width, height
 
@@ -22,6 +22,7 @@ class Text:
         self.padding = 10
         self.margin = margin
         self.size = None
+        self.visible = True
 
     def inflate(self, pos, size):
         self.pos = pos
@@ -37,6 +38,9 @@ class Text:
         pass
 
     def oneline_text(self):
+        self.rects.clear()
+        self.text_surfs.clear()
+        self.text_rects.clear()
         self.rects.append(pygame.Rect(getTopleft(self.pos, self.size), self.size))
         self.text_surfs.append(self.font.render(self.text, True, self.color))
         if self.alignment == "center":
@@ -64,15 +68,15 @@ class Text:
         rows.append(" ".join(text))
 
         y = self.pos[1]
-        y -= (len(rows) // 2 * max_height)
+        y -= ((len(rows) // 2) * max_height)
         if len(rows) % 2 == 0:
-            y += max_height // 2
+            y += max_height / 2
 
         x = self.pos[0]
 
         for i in range(len(rows)):
             self.text_surfs.append(self.font.render(rows[i], True, self.color))
-            self.rects.append(pygame.Rect((x - max_width // 2, y - max_height // 2), (max_width, max_height)))
+            self.rects.append(pygame.Rect(getTopleft((x, y), (max_width, max_height)), (max_width, max_height)))
             if self.alignment == "center":
                 self.text_rects.append(self.text_surfs[i].get_rect(center=self.rects[i].center))
             elif self.alignment == "midleft":
@@ -81,10 +85,11 @@ class Text:
             y += max_height
 
     def draw(self):
-        for i in range(len(self.rects)):
-            SCREEN.blit(self.text_surfs[i], self.text_rects[i])
-            if self.border:
-                pygame.draw.rect(SCREEN, self.color, self.rects[i], width=1)
+        if self.visible:
+            for i in range(len(self.rects)):
+                SCREEN.blit(self.text_surfs[i], self.text_rects[i])
+                if self.border:
+                    pygame.draw.rect(SCREEN, self.color, self.rects[i], width=1)
 
 
 class Icon:
@@ -95,6 +100,7 @@ class Icon:
         self.height = height
         self.rect = None
         self.pos = None
+        self.visible = True
 
     def inflate(self, pos, size):
         if self.width == 0:
@@ -109,7 +115,7 @@ class Icon:
         pass
 
     def draw(self):
-        pygame.draw.rect(SCREEN, self.color, self.rect)
-        if self.border:
-            pygame.draw.rect(SCREEN, BLACK, self.rect, width=1)
-
+        if self.visible:
+            pygame.draw.rect(SCREEN, self.color, self.rect)
+            if self.border:
+                pygame.draw.rect(SCREEN, BLACK, self.rect, width=1)

@@ -1,13 +1,14 @@
 import pygame
-from globals import FONT, WHITE, SELECTED_TEMPLATE, DEFAULT_TEMPLATE, SCREEN
+from globals import FONT, TEXTCOLOR, SELECTED_TEMPLATE, DEFAULT_TEMPLATE, SCREEN
 
 
 class Button:
-    def __init__(self, text, onclick, alignment="center"):
+    def __init__(self, text, onclick, alignment="center", visible=True):
         self.pressed = False
+        self.visible = visible
 
         # text
-        self.text = FONT.render(text, True, WHITE)
+        self.text = FONT.render(text, True, TEXTCOLOR)
         self.width, self.height = self.text.get_width(), self.text.get_height()
         self.alignment = alignment
         self.padding = 10  # padding for x and y if too close to center
@@ -37,19 +38,21 @@ class Button:
             self.text_rect.center = self.rect.center
 
     def update(self):
-        mouse_pos = pygame.mouse.get_pos()
-        if self.rect.collidepoint(mouse_pos):
-            self.image = self.selectedImg
-            if pygame.mouse.get_pressed()[0]:
-                self.pressed = True
+        if self.visible:
+            mouse_pos = pygame.mouse.get_pos()
+            if self.rect.collidepoint(mouse_pos):
+                self.image = self.selectedImg
+                if pygame.mouse.get_pressed()[0]:
+                    self.pressed = True
+                else:
+                    if self.pressed:
+                        self.onclick()
+                        self.pressed = False
             else:
-                if self.pressed:
-                    self.onclick()
-                    self.pressed = False
-        else:
-            self.pressed = False
-            self.image = self.defaultImg
+                self.pressed = False
+                self.image = self.defaultImg
 
     def draw(self):
-        SCREEN.blit(self.image, self.rect)
-        SCREEN.blit(self.text, self.text_rect)
+        if self.visible:
+            SCREEN.blit(self.image, self.rect)
+            SCREEN.blit(self.text, self.text_rect)

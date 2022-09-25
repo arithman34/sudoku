@@ -1,18 +1,18 @@
 import pygame
 
-from globals import *
+from globals import getTopleft, BLACK, SCREEN
 
 
 # assume everything in the container is centralised
 class Container:
-    def __init__(self, topleft, bottomright, margin=70, color=BACKGROUNDCOLOR):
-        self.topleft = topleft
-        self.midpoint = (topleft[0] + bottomright[0]) // 2, (topleft[1] + bottomright[1]) // 2
+    def __init__(self, id, midpoint, size, margin=70, color=BLACK):
+        self.id = id
+        self.midpoint = midpoint
         self.margin = margin
-        self.size = [bottomright[0] - topleft[0], bottomright[1] - topleft[1]]
-        self.color = color
+        self.size = size
         self.type = None
         self.sprites = []
+        self.color = color
 
     def add(self, sprite):
         if len(self.sprites) == 0:
@@ -25,7 +25,7 @@ class Container:
             return
 
         raise RuntimeError("Invalid container entry, attempting to add a " + sprite.__class__.__name__ +
-                           " object to a " + self.type + " array")
+                           " object to a " + self.type + " container!")
 
     def inflate(self):
         y = self.midpoint[1]
@@ -42,25 +42,24 @@ class Container:
 
         elif self.type == "Table":
             for sprite in self.sprites:
-                sprite.inflate(self.topleft, self.size)
+                sprite.inflate(getTopleft(self.midpoint, self.size), self.size)
 
         elif self.type == "Text":
             for sprite in self.sprites:
                 sprite.inflate(self.midpoint, self.size)
+
+        elif self.type == "Board":
+            for sprite in self.sprites:
+                sprite.inflate(getTopleft(self.midpoint, self.size), self.size)
+
+    def change_visibility(self):
+        for sprite in self.sprites:
+            sprite.visible = not sprite.visible
 
     def update(self):
         for sprite in self.sprites:
             sprite.update()
 
     def draw(self):
-
-        # pygame.draw.rect(SCREEN, self.color, (
-        #     self.topleft[0], self.topleft[1], self.size[0], self.size[1]))
-
-        # pygame.draw.rect(SCREEN, BLACK, (
-        #     0, 107, WIDTH, 506))
-
         for sprite in self.sprites:
             sprite.draw()
-
-        # pygame.draw.circle(SCREEN, BLACK, (self.midpoint[0] - 2, self.midpoint[1] - 2), 4)

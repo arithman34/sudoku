@@ -1,7 +1,7 @@
 import random
-from activities import WelcomeActivity
+from activities import *
 
 random.seed(1)
 
 if __name__ == "__main__":
-    WelcomeActivity()
+    GameActivity("EASY")

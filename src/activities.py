@@ -3,71 +3,99 @@ from functools import partial
 from button import *
 from container import Container
 from labels import Text, Icon
+from board import Board
 from sudoku import Sudoku, deepCopy
 from globals import *
 from table import Table
 
 
-class WelcomeActivity:
+class Activity:
     def __init__(self):
-        self.blink_event = pygame.USEREVENT + 0
-
         self.containers = []
 
-        container = Container((0, 0), (WIDTH, 150), 0)
+    def run(self):
+        running = True
+        while running:
+            SCREEN.blit(BACKGROUND, (0, 0))
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+
+            for container in self.containers:
+                container.update()
+
+            for container in self.containers:
+                container.draw()
+            pygame.display.flip()
+            CLOCK.tick(FPS)
+        destroy()
+
+    def getContainerById(self, id):
+        for container in self.containers:
+            if container.id == id:
+                return container
+        return None
+
+
+class WelcomeActivity(Activity):
+    def __init__(self):
+        super().__init__()
+        self.containers = []
+
+        container = Container(0, (WIDTH / 2, 75), (WIDTH, 150), 0, RED)
         container.add(Text("Welcome to Sudoku", font=LARGEFONT, margin=50))
         container.inflate()
         self.containers.append(container)
 
-        container = Container((0, 150), (WIDTH, HEIGHT - 150), 0)
+        container = Container(1, (WIDTH / 2, 360), (WIDTH, 420), 0, GREY)
         container.add(Text("Sudoku is a game where all rows, columns and 3x3 grids must contain " +
                            "the numbers 1-9 at least once and only once. This implementation can also solve any " +
                            "sudoku board provided, of course, it is legal. You will have several modes to choose " +
-                           "from ranging from easy to hard. Good luck!", margin=100))
+                           "from ranging from easy to hard. Good luck!", margin=250))
         container.inflate()
         self.containers.append(container)
 
-        self.blink_container = Container((0, HEIGHT - 150), (WIDTH, HEIGHT))
-        self.blink_container.add(Text("Press a key to play"))
-        self.blink_container.inflate()
+        container = Container(2, (WIDTH / 2, 645), (WIDTH, 150), 0, (255, 255, 0))
+        container.add(Text("Press a key to play"))
+        container.inflate()
+        self.containers.append(container)
 
+        self.blink_event = pygame.USEREVENT
         pygame.time.set_timer(self.blink_event, 1000)
 
         self.run()
 
     def run(self):
         running = True
-        showing = False
         while running:
             SCREEN.blit(BACKGROUND, (0, 0))
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     destroy()
 
-                if event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
+                if event.type == pygame.KEYDOWN:
                     running = False
 
                 if event.type == self.blink_event:
-                    showing = not showing
+                    self.containers[2].change_visibility()
 
-                for container in self.containers:
-                    container.update()
+            for container in self.containers:
+                container.update()
 
             for container in self.containers:
                 container.draw()
 
-            if showing:
-                self.blink_container.draw()
             pygame.display.flip()
             CLOCK.tick(FPS)
         HomeActivity()
 
 
-class HomeActivity:
+class HomeActivity(Activity):
     def __init__(self):
+        super().__init__()
         self.containers = []
 
-        container = Container((0, 0), (WIDTH, HEIGHT))
+        container = Container(0, (WIDTH / 2, HEIGHT / 2), (WIDTH, HEIGHT))
         container.add(Button("Mode", ModeActivity))
         container.add(Button("Solve", partial(GameActivity, "EMPTY")))
         container.add(Button("Instructions", InstructionActivity))
@@ -77,30 +105,13 @@ class HomeActivity:
 
         self.run()
 
-    def run(self):
-        running = True
-        while running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
 
-                for container in self.containers:
-                    container.update()
-
-            SCREEN.blit(BACKGROUND, (0, 0))
-
-            for container in self.containers:
-                container.draw()
-            pygame.display.flip()
-            CLOCK.tick(FPS)
-        destroy()
-
-
-class ModeActivity:
+class ModeActivity(Activity):
     def __init__(self):
+        super().__init__()
         self.containers = []
 
-        container = Container((0, 0), (WIDTH, HEIGHT))
+        container = Container(0, (WIDTH / 2, HEIGHT / 2), (WIDTH, HEIGHT))
         container.add(Button("Easy", partial(GameActivity, "EASY")))
         container.add(Button("Normal", partial(GameActivity, "NORMAL")))
         container.add(Button("Hard", partial(GameActivity, "HARD")))
@@ -110,35 +121,13 @@ class ModeActivity:
 
         self.run()
 
-    def run(self):
-        running = True
-        while running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    destroy()
-                for container in self.containers:
-                    container.update()
 
-            SCREEN.blit(BACKGROUND, (0, 0))
-
-            for container in self.containers:
-                container.draw()
-            pygame.display.flip()
-            CLOCK.tick(FPS)
-        destroy()
-
-
-class InstructionActivity:
+class InstructionActivity(Activity):
     def __init__(self):
+        super().__init__()
         self.containers = []
 
-        container = Container((0, HEIGHT - 150), (WIDTH, HEIGHT), color=(255, 255, 0))
-        container.add(Button("Return", HomeActivity))
-        container.inflate()
-
-        self.containers.append(container)
-
-        container = Container((0, 0), (WIDTH, HEIGHT - 150), color=(0, 255, 255))
+        container = Container(0, (WIDTH / 2, 285), (WIDTH, HEIGHT - 150))
         table = Table(2, 7)
 
         table.add_cell(Text("Key", alignment="center"), 0, 0)
@@ -162,266 +151,68 @@ class InstructionActivity:
 
         container.add(table)
         container.inflate()
+        self.containers.append(container)
+
+        container = Container(1, (WIDTH / 2, 645), (WIDTH, 150), 0)
+        container.add(Button("Return", HomeActivity))
+        container.inflate()
 
         self.containers.append(container)
+
         self.run()
 
-    def run(self):
-        running = True
-        while running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    destroy()
 
-                for container in self.containers:
-                    container.update()
-
-            SCREEN.blit(BACKGROUND, (0, 0))
-            for container in self.containers:
-                container.draw()
-            pygame.display.flip()
-            CLOCK.tick(FPS)
-        destroy()
-
-
-class GameActivity:
+class GameActivity(Activity):
     def __init__(self, mode):
-        self.mode = mode
+        super().__init__()
+        # self.mode = mode
+        self.containers = []
+
         self.sudoku = Sudoku()
         self.sudoku.create(mode)
-        self.i = 0
-        self.j = 0
-        board = self.sudoku.getBoard()
-        self.uneditable = populateDictionary(board)
-        self.states = []
-        self.initial = deepCopy(board)
-        self.positions = []
 
-        self.containers = []
-
-        container = Container((SIZE * BOARD_SIZE, 0), (WIDTH, HEIGHT))
-        container.add(Button("New Game", HomeActivity))
-        container.add(Button("Reset", self.reload))
-        container.add(Button("Solve", self.solve))
-        container.add(Button("Undo", self.previousBoardState))
+        container = Container(0, (HEIGHT / 2, HEIGHT / 2), (HEIGHT, HEIGHT))
+        container.add(Board(self.sudoku))
         container.inflate()
+        self.containers.append(container)
 
+        container = Container(1, (960, HEIGHT / 2), (480, HEIGHT))
+        container.add(Button("New Game", HomeActivity))
+        container.add(Button("Reset", self.getContainerById(0).sprites[0].reset))
+        container.add(Button("Solve", self.solve))
+        container.add(Button("Undo", self.getContainerById(0).sprites[0].undo))
+        container.inflate()
         self.containers.append(container)
 
         self.run()
-
-    def run(self):
-        running = True
-        while running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    destroy()
-
-                if pygame.mouse.get_pressed()[0]:  # the left mouse button is pressed
-                    mouse_pos = pygame.mouse.get_pos()
-                    i, j = mouse_pos[0] // SIZE, mouse_pos[1] // SIZE
-                    if 0 <= i < BOARD_SIZE and 0 <= j < BOARD_SIZE:
-                        self.i = i
-                        self.j = j
-                        self.positions.clear()
-                        self.positions = self.findIllegalPositions(self.sudoku.getBoard()[self.j][self.i])
-
-                if event.type == pygame.KEYDOWN:
-                    num = -1
-                    if event.key == pygame.K_1:
-                        num = 1
-                    elif event.key == pygame.K_2:
-                        num = 2
-                    elif event.key == pygame.K_3:
-                        num = 3
-                    elif event.key == pygame.K_4:
-                        num = 4
-                    elif event.key == pygame.K_5:
-                        num = 5
-                    elif event.key == pygame.K_6:
-                        num = 6
-                    elif event.key == pygame.K_7:
-                        num = 7
-                    elif event.key == pygame.K_8:
-                        num = 8
-                    elif event.key == pygame.K_9:
-                        num = 9
-                    elif event.key == pygame.K_0 or event.key == pygame.K_BACKSPACE:
-                        num = 0
-
-                    self.positions.clear()
-
-                    if num not in (-1, 0) and num not in self.sudoku.markup(self.i, self.j) \
-                            and (self.i, self.j) not in self.uneditable:
-                        self.positions = self.findIllegalPositions(num)
-
-                    if num != -1 and (self.i, self.j) not in self.uneditable:
-                        self.sudoku.parseCell(self.i, self.j, num)
-                        self.states.append((deepCopy(self.sudoku.getBoard()), (self.i, self.j)))
-
-                for container in self.containers:
-                    container.update()
-
-            SCREEN.blit(BACKGROUND, (0, 0))
-            for container in self.containers:
-                container.draw()
-            self.draw_cells()
-            draw_grid()
-            # SCREEN.blit(get_fps(), (WIDTH - 94, 20))
-
-            pygame.display.flip()
-            CLOCK.tick(FPS)
-
-    def findIllegalPositions(self, num):
-        if num == 0:
-            return []
-
-        board = self.sudoku.getBoard()
-        row = self.sudoku.getRow(self.j)
-        column = self.sudoku.getColumn(self.i)
-        grid = self.sudoku.getGrid(self.i, self.j)
-
-        positions = []
-
-        if num in grid:
-            temp_i = self.i // 3
-            temp_j = self.j // 3
-            for j in range(temp_j * 3, temp_j * 3 + 3):
-                for i in range(temp_i * 3, temp_i * 3 + 3):
-                    if num == board[j][i] and (self.i, self.j) != (i, j):
-                        positions.append((i, j))
-
-        if num in row:
-            for i in range(BOARD_SIZE):
-                if num == board[self.j][i] and self.i != i:
-                    positions.append((i, self.j))
-
-        if num in column:
-            for j in range(BOARD_SIZE):
-                if num == board[j][self.i] and self.j != j:
-                    positions.append((self.i, j))
-
-        return positions
-
-    def draw_cells(self):
-        board = self.sudoku.getBoard()
-        num = board[self.j][self.i]
-        for j in range(BOARD_SIZE):
-            for i in range(BOARD_SIZE):
-                color = WHITE
-                if num != 0 and board[j][i] == num:
-                    color = LIGHTGREY
-                if (i, j) == (self.i, self.j):
-                    color = RED
-                pygame.draw.rect(SCREEN, color, (i * SIZE, j * SIZE, SIZE, SIZE))
-                if board[j][i] == 0:
-                    continue
-                if (i, j) in self.uneditable.keys():
-                    font = ARIALFONT
-                else:
-                    font = PENCILFONT
-                text = font.render(str(board[j][i]), True, BLACK)
-                width, height = text.get_width(), text.get_height()
-                SCREEN.blit(text, (i * SIZE + SIZE / 2 - width / 2, j * SIZE + SIZE / 2 - height / 2))
-
-        for (i, j) in self.positions:
-            pygame.draw.rect(SCREEN, RED, (i * SIZE, j * SIZE, SIZE, SIZE), 7)
-
-    def reload(self):
-        self.i = 0
-        self.j = 0
-        self.sudoku.parseBoard(deepCopy(self.sudoku.temp))
-        self.states = []
-        self.positions.clear()
 
     def solve(self):
-        SolvingActivity(deepCopy(self.sudoku.getBoard()))
-
-    def previousBoardState(self):
-        if len(self.states) > 0:
-            self.states.pop()
-            if len(self.states) != 0:
-                self.sudoku.parseBoard(deepCopy(self.states[-1][0]))
-                self.i, self.j = self.states[-1][1]
-            else:
-                self.sudoku.parseBoard(deepCopy(self.initial))
-                self.i, self.j = 0, 0
-            self.positions.clear()
+        SolvingActivity(deepCopy(self.getContainerById(0).sprites[0].sudoku.getBoard()))
 
 
-class SolvingActivity:
+class SolvingActivity(Activity):
     def __init__(self, board):
+        super().__init__()
         self.containers = []
+        self.sudoku = Sudoku(board)
 
-        container = Container((SIZE * BOARD_SIZE, 0), (WIDTH, HEIGHT))
-        container.add(Button("New Game", HomeActivity))
-        container.add(Button("Solve", partial(GameActivity, "EMPTY")))
+        container = Container(0, (HEIGHT / 2, HEIGHT / 2), (HEIGHT, HEIGHT))
+        container.add(Board(self.sudoku, True))
         container.inflate()
-
         self.containers.append(container)
 
-        self.solving = False
-        self.sudoku = Sudoku(board)
-        self.uneditable = populateDictionary(board)
+        container = Container(1, (960, HEIGHT / 2), (480, HEIGHT))
+        container.add(Button("New Game", ModeActivity))
+        container.add(Button("Solve", partial(GameActivity, "EMPTY")))
+        container.inflate()
+        self.containers.append(container)
+
         self.board = board
-        self.begin_solver()
+        self.solve()
         self.run()
 
-    def run(self):
-        running = True
-        while running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    destroy()
-
-                for container in self.containers:
-                    container.update()
-
-            SCREEN.blit(BACKGROUND, (0, 0))
-            for container in self.containers:
-                container.draw()
-            self.draw_cells()
-            draw_grid()
-            # SCREEN.blit(get_fps(), (WIDTH - 94, 20))
-
-            pygame.display.flip()
-            CLOCK.tick(FPS)
-
-    def draw_cells(self):
-        for j in range(BOARD_SIZE):
-            for i in range(BOARD_SIZE):
-                pygame.draw.rect(SCREEN, WHITE, (i * SIZE, j * SIZE, SIZE, SIZE))
-                if self.board[j][i] == 0:
-                    continue
-
-                if (i, j) in self.uneditable.keys():
-                    font = ARIALFONT
-                else:
-                    font = PENCILFONT
-
-                text = font.render(str(self.board[j][i]), True, BLACK)
-                width, height = text.get_width(), text.get_height()
-                SCREEN.blit(text, (i * SIZE + SIZE / 2 - width / 2, j * SIZE + SIZE / 2 - height / 2))
-
-    def begin_solver(self):
-        self.solving = True
+    def solve(self):
         self.sudoku.backtrackingSolution()
-
-    def update(self):
-        for j in range(BOARD_SIZE):
-            for i in range(BOARD_SIZE):
-                if self.board[j][i] != self.sudoku.getBoard()[j][i]:
-                    self.board[j][i] = self.sudoku.getBoard()[j][i]
-
-
-def draw_grid():
-    for i in range(1, BOARD_SIZE):
-        if i % 3 == 0:
-            size = 5
-        else:
-            size = 1
-        pygame.draw.line(SCREEN, BLACK, (0, i * SIZE), (BOARD_SIZE * SIZE, i * SIZE), size)
-        pygame.draw.line(SCREEN, BLACK, (i * SIZE, 0), (i * SIZE, BOARD_SIZE * SIZE), size)
 
 
 def destroy():
@@ -440,3 +231,7 @@ def populateDictionary(board):
             if board[j][i] != 0:
                 dictionary[(i, j)] = board[j][i]
     return dictionary
+
+# make the sudoku board a container
+# timer (when trying to solve and timer when solving via backtracking)
+# sudoku AI grader

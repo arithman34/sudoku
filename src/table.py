@@ -14,6 +14,7 @@ class Table:
 
         self.width = [0 for _ in range(self.columns)]
         self.height = [0 for _ in range(self.rows)]
+        self.visible = True
 
     def add_cell(self, cell, i, j):
         self.cells[j][i].append(cell)
@@ -53,7 +54,7 @@ class Table:
     def update(self):
         pass
 
-    def drawTable(self):
+    def drawBorder(self):
         size = 2
         x = self.pos[0]
         for i in range(len(self.width)):
@@ -68,9 +69,10 @@ class Table:
         pygame.draw.line(SCREEN, BLACK, (self.pos[0], y), (self.pos[0] + self.size[0], y), size)
 
     def draw(self):
-        for k in range(self.rows):
-            for j in range(self.columns):
-                for i in range(len(self.cells[k][j])):
-                    self.cells[k][j][i].draw()
-        if self.border:
-            self.drawTable()
+        if self.visible:
+            for k in range(self.rows):
+                for j in range(self.columns):
+                    for i in range(len(self.cells[k][j])):
+                        self.cells[k][j][i].draw()
+            if self.border:
+                self.drawBorder()
