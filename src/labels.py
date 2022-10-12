@@ -34,6 +34,10 @@ class Text:
         else:
             self.multiline_text()
 
+    def change_text(self, text):
+        self.text = str(text)
+        self.inflate(self.pos, self.size)
+
     def update(self):
         pass
 

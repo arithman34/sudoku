@@ -77,7 +77,7 @@ class WelcomeActivity(Activity):
                     running = False
 
                 if event.type == self.blink_event:
-                    self.containers[2].change_visibility()
+                    self.containers[2].setVisibility()
 
             for container in self.containers:
                 container.update()
@@ -165,7 +165,6 @@ class InstructionActivity(Activity):
 class GameActivity(Activity):
     def __init__(self, mode):
         super().__init__()
-        # self.mode = mode
         self.containers = []
 
         self.sudoku = Sudoku()
@@ -207,12 +206,51 @@ class SolvingActivity(Activity):
         container.inflate()
         self.containers.append(container)
 
+        container = Container(2, (HEIGHT / 2, HEIGHT / 2), (HEIGHT, HEIGHT))
+        container.add(Text("", font=LARGEFONT))
+        container.setVisibility(False)
+        container.inflate()
+        self.containers.append(container)
+
+        self.state = self.getContainerById(0).sprites[0].state
+        if self.state == INCOMPLETE:
+            self.getContainerById(0).setVisibility(False)
+            self.getContainerById(2).sprites[0].change_text("No solution")
+            self.getContainerById(2).setVisibility(True)
+
         self.board = board
-        self.solve()
+        if self.getContainerById(0).sprites[0].state == SOLVING:
+            self.sudoku.backtrackingSolution()
         self.run()
 
-    def solve(self):
-        self.sudoku.backtrackingSolution()
+    def run(self):
+        running = True
+        while running:
+            state = self.getContainerById(0).sprites[0].state
+            if self.state != state:
+                if state == COMPLETE:
+                    self.getContainerById(0).setVisibility(False)
+                    self.getContainerById(2).sprites[0].change_text("Found a solution")
+                    self.getContainerById(2).setVisibility(True)
+                elif state == INCOMPLETE:
+                    self.getContainerById(0).setVisibility(False)
+                    self.getContainerById(2).sprites[0].change_text("No solution")
+                    self.getContainerById(2).setVisibility(True)
+                self.state = state
+
+            SCREEN.blit(BACKGROUND, (0, 0))
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+
+            for container in self.containers:
+                container.update()
+
+            for container in self.containers:
+                container.draw()
+            pygame.display.flip()
+            CLOCK.tick(FPS)
+        destroy()
 
 
 def destroy():
@@ -232,6 +270,6 @@ def populateDictionary(board):
                 dictionary[(i, j)] = board[j][i]
     return dictionary
 
-# make the sudoku board a container
-# timer (when trying to solve and timer when solving via backtracking)
-# sudoku AI grader
+
+# undo not working with 3 sixs
+# slow down the solution through user control

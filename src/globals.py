@@ -8,10 +8,11 @@ WIDTH = 1200
 HEIGHT = SIZE * BOARD_SIZE
 TITLE = "Sudoku"
 FPS = 60
-EMPTY = 0
-SELECTED = 1
-SAME = 2
-ILLEGAL = 3
+IDLE = 0  # doing nothing
+SOLVING = 1  # board is attempting to solve
+INCOMPLETE = 2  # board either attempted to solve and got no solution or board is illegal so no solution exists
+COMPLETE = 3  # board found a solution
+DELAY = 0.01  # delay in solving
 
 # color related definitions
 WHITE = (255, 255, 255)

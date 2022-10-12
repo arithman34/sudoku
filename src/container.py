@@ -52,9 +52,12 @@ class Container:
             for sprite in self.sprites:
                 sprite.inflate(getTopleft(self.midpoint, self.size), self.size)
 
-    def change_visibility(self):
+    def setVisibility(self, visibility=None):
         for sprite in self.sprites:
-            sprite.visible = not sprite.visible
+            if visibility is None:
+                sprite.visible = not sprite.visible
+            else:
+                sprite.visible = visibility
 
     def update(self):
         for sprite in self.sprites:

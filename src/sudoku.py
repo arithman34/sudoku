@@ -1,7 +1,7 @@
 import time
 import threading
 import random
-from globals import BOARD_SIZE, NUMBERS
+from globals import BOARD_SIZE, NUMBERS, DELAY
 
 
 class Grader:
@@ -61,10 +61,17 @@ class Sudoku:
     def markup(self, i, j):
         row = NUMBERS - self.getRow(j)
         column = NUMBERS - self.getColumn(i)
-        box = NUMBERS - self.getGrid(i, j)
-        return row.intersection(column, box)
+        grid = NUMBERS - self.getGrid(i, j)
+        return row.intersection(column, grid)
 
-    def emptyPosition(self, pos):
+    def isComplete(self):
+        for j in range(BOARD_SIZE):
+            for i in range(BOARD_SIZE):
+                if self.__board[j][i] == 0:
+                    return False
+        return True
+
+    def isEmpty(self, pos):
         for j in range(BOARD_SIZE):
             for i in range(BOARD_SIZE):
                 if self.__board[j][i] == 0:
@@ -83,6 +90,7 @@ class Sudoku:
             except RuntimeError:
                 self.__board = deepCopy(self.temp)
             self.__solving = False
+        self.__thread = None
 
     def __solve(self):
         # a thread has been initiated but is about to be killed. Throwing an error is the best way to leave a thread
@@ -93,7 +101,7 @@ class Sudoku:
 
         current = [0, 0]
 
-        if not self.emptyPosition(current):
+        if not self.isEmpty(current):
             return True
 
         i = current[0]
@@ -106,7 +114,7 @@ class Sudoku:
             self.__board[j][i] = num
 
             if self.__solving:
-                time.sleep(0.01)
+                time.sleep(DELAY)
 
             if self.__solve():
                 return True
@@ -114,14 +122,13 @@ class Sudoku:
             self.__board[j][i] = 0
 
             if self.__solving:
-                time.sleep(0.01)
+                time.sleep(DELAY)
         return False
 
     def solution(self):
         self.initBoard()
 
         if not self.__solve():
-            print("There are no solutions, creating a new table")
             self.solution()
 
     def create(self, flag):
@@ -153,10 +160,13 @@ class Sudoku:
         self.__board[j][i] = num
 
     def parseBoard(self, board):
-        self.__board = board
+        self.__board = deepCopy(board)
 
     def getBoard(self):
         return self.__board
+
+    def getSolving(self):
+        return self.__solving
 
 
 def deepCopy(array):
